@@ -39,37 +39,38 @@ public class App extends NanoHTTPD {
     public Response serve(IHTTPSession session) {
         try {
             // Setup connection
-            Cumulio client = new Cumulio(dotenv.get("CUMUL_KEY"), dotenv.get("CUMUL_TOKEN"), "https://api.cumul.io/");
+            Cumulio client = new Cumulio(dotenv.get("CUMUL_KEY"), dotenv.get("CUMUL_TOKEN"), dotenv.get("API_URL"));
 
             // On page requests of pages containing embedded dashboards, request an "authorization"
             JSONObject authorization = client.create("authorization", ImmutableMap.builder()
                 .put("type", "sso")
                 .put("expiry", "24 hours")
                 .put("inactivity_interval", "10 minutes")
-                .put("username", "< A unique and immutable identifier for your end user >")
+                .put("username", dotenv.get("USER_USERNAME"))
                 .put("name", dotenv.get("USER_NAME"))
                 .put("email", dotenv.get("USER_EMAIL"))
-                .put("suborganization", "< Suborganization name >")
+                .put("suborganization", dotenv.get("USER_SUBORGANIZATION"))
                 .put("integration_id", dotenv.get("INTEGRATION_ID"))
                 .put("role", "viewer")
                 .build()
             );
+            JSONObject authResponse = new JSONObject();
+            authResponse.put("status", "success");
+            authResponse.put("key", authorization.getString("id"));
+            authResponse.put("token", authorization.getString("token"));
+
             Response response = newFixedLengthResponse(
-                "{ " +
-                "\"id\": " +
-                authorization.getString("id") +
-                ", " +
-                "\"token: \"" +
-                authorization.getString("token") + 
-                "}"
+                authResponse.toString()
             );
             response.addHeader("Content-Type", "application/json");
             return response;
         } catch(Exception e) {
-            
+            JSONObject authResponse = new JSONObject();
+            authResponse.put("status", "failed");
+            Response resp = newFixedLengthResponse(authResponse.toString());
+            resp.addHeader("Content-Type", "application/json");
+            return resp;
         }
-        Response resp = newFixedLengthResponse("{ \"temp\": \"Wow\" }");
-        resp.addHeader("Content-Type", "application/json");
-        return resp;
+
     }
 }
