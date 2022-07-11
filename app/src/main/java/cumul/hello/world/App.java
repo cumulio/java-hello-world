@@ -16,9 +16,9 @@ public class App extends NanoHTTPD {
     static private Dotenv dotenv;
     
     public App() throws IOException {
-        super(8081);
+        super(4001);
         start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
-        System.out.println("\nRunning! Point your browsers to http://localhost:8080/ \n");
+        System.out.println("\nRunning! Point your browsers to http://localhost:4001/ \n");
     }
 
     public static void main(String[] args) {
